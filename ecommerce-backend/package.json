@@ -1,0 +1,45 @@
+{
+  "name": "ecommerce-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.16.1",
+    "@strapi/plugin-documentation": "^5.16.1",
+    "@strapi/plugin-users-permissions": "5.16.1",
+    "@strapi/provider-email-sendgrid": "^5.16.1",
+    "@strapi/provider-upload-aws-s3": "^5.16.1",
+    "@strapi/strapi": "5.16.1",
+    "better-sqlite3": "11.3.0",
+    "razorpay": "^2.8.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "9a3bb952-aba1-4130-9f17-491f8dbf0531",
+    "installId": "bb0e334cdaac9dae7b6d3bad09faa2c218005183df546ccaa4c23cbdd2502617"
+  }
+}
