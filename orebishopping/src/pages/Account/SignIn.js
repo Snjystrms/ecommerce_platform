@@ -17,8 +17,8 @@ const SignIn = () => {
   const [apiError, setApiError] = useState("");
   // ============= Error Msg End here ===================
   const [successMsg, setSuccessMsg] = useState("");
-  const navigate = useNavigate();
-  const GOOGLE_AUTH_URL = "http://localhost:1337/api/connect/google?redirect=http://localhost:3000/auth/google/callback";
+  const navigate = useNavigate(); 
+  const GOOGLE_AUTH_URL = "http://localhost:1337/api/connect/google?redirect=http://localhost:3000/#/auth/google/callback";
   const dispatch = useDispatch();
   // ============= Event Handler Start here =============
   const handleEmail = (e) => {

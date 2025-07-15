@@ -29,6 +29,7 @@ const SignUp = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [apiError, setApiError] = useState("");
   const navigate = useNavigate();
+  const GOOGLE_AUTH_URL = "http://localhost:1337/api/connect/google?redirect=http://localhost:3000/#/auth/google/callback";
   // ============= Event Handler Start here =============
   const handleName = (e) => {
     setClientName(e.target.value);
@@ -133,7 +134,7 @@ const SignUp = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Implementation of handleGoogleLogin
+    window.location.href = GOOGLE_AUTH_URL;
   };
 
   return (
