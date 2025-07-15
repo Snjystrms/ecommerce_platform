@@ -1,5 +1,5 @@
 import {
-  createBrowserRouter,
+  createHashRouter,
   RouterProvider,
   Outlet,
   createRoutesFromElements,
@@ -23,6 +23,8 @@ import Payment from "./pages/payment/Payment";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Shop from "./pages/Shop/Shop";
 import GoogleCallback from "./pages/Account/GoogleCallback";
+import Success from "./pages/payment/Success";
+import Profile from "./pages/Account/Profile";
 
 const Layout = () => {
   return (
@@ -37,7 +39,7 @@ const Layout = () => {
     </div>
   );
 };
-const router = createBrowserRouter(
+const router = createHashRouter(
   createRoutesFromElements(
     <Route>
       <Route path="/" element={<Layout />}>
@@ -52,6 +54,8 @@ const router = createBrowserRouter(
         <Route path="/product/:documentId" element={<ProductDetails />}></Route>
         <Route path="/cart" element={<Cart />}></Route>
         <Route path="/paymentgateway" element={<Payment />}></Route>
+        <Route path="/payment/success" element={<Success />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
       <Route path="/signup" element={<SignUp />}></Route>
       <Route path="/signin" element={<SignIn />}></Route>

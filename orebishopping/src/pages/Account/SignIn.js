@@ -3,6 +3,8 @@ import { BsCheckCircleFill } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { logoLight, pngegg } from "../../assets/images";
 import { strapiApi } from "../../api/strapi";
+import { useDispatch } from "react-redux";
+import { setUserInfo } from "../../redux/orebiSlice";
 
 const SignIn = () => {
   // ============= Initial State Start here =============
@@ -17,9 +19,10 @@ const SignIn = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const navigate = useNavigate();
   const GOOGLE_AUTH_URL = "http://localhost:1337/api/connect/google?redirect=http://localhost:3000/auth/google/callback";
+  const dispatch = useDispatch();
   // ============= Event Handler Start here =============
   const handleEmail = (e) => {
-    setEmail(e.target.value);
+    setEmail(e.target.value); 
     setErrEmail("");
     setApiError("");
   };
@@ -43,6 +46,14 @@ const SignIn = () => {
     if (email && password) {
       try {
         const response = await strapiApi.login(email, password);
+        // Save JWT token to localStorage
+        if (response.data && response.data.jwt) {
+          localStorage.setItem('token', response.data.jwt);
+        }
+        // Save user info in Redux
+        if (response.data && response.data.user) {
+          dispatch(setUserInfo(response.data.user));
+        }
         setSuccessMsg("Login successful! Welcome back.");
         setEmail("");
         setPassword("");

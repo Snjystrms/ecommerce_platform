@@ -6,6 +6,15 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+// Add interceptor to include JWT token in Authorization header
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const strapiApi = {
   getProducts: () => api.get('/products?populate=*'),
   getProduct: (id) => api.get(`/products/${id}?populate=*`),

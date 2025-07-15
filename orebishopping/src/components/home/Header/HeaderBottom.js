@@ -5,10 +5,17 @@ import { FaSearch, FaUser, FaCaretDown, FaShoppingCart } from "react-icons/fa";
 import Flex from "../../designLayouts/Flex";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { strapiApi } from "../../../api/strapi";
+import { MeiliSearch } from "meilisearch";
+
+const meiliClient = new MeiliSearch({
+  host: 'http://localhost:7700',
+  apiKey: 'AlJih_duUVWnA1Dzp-2Y8poxdaaHnjET5TyLjuJWJFg',
+});
+const productIndex = meiliClient.index('product');
 
 const HeaderBottom = () => {
-  const [products, setProducts] = useState([]);
+  // Use Redux store for cart products only
+  const cartProducts = useSelector((state) => state.orebiReducer.products);
   const [show, setShow] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const navigate = useNavigate();
@@ -25,24 +32,30 @@ const HeaderBottom = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Meilisearch search as you type
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredProducts([]);
+      return;
+    }
+    setIsLoading(true);
+    productIndex
+      .search(searchQuery, { limit: 10 })
+      .then((res) => {
+        setFilteredProducts(res.hits || []);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setFilteredProducts([]);
+        setIsLoading(false);
+      });
+  }, [searchQuery]);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
   };
-
-  useEffect(() => {
-    strapiApi.getProducts().then(res => {
-      setProducts(res.data.data || []);
-    });
-  }, []);
-
-  useEffect(() => {
-    const filtered = products.filter((item) => {
-      const title = item.attributes?.title || "";
-      return title.toLowerCase().includes(searchQuery.toLowerCase());
-    });
-    setFilteredProducts(filtered);
-  }, [searchQuery, products]);
 
   return (
     <div className="w-full bg-[#F5F5F3] relative">
@@ -97,37 +110,49 @@ const HeaderBottom = () => {
               <div
                 className={`w-full mx-auto h-96 bg-white top-16 absolute left-0 z-50 overflow-y-scroll shadow-2xl scrollbar-hide cursor-pointer`}
               >
-                {searchQuery &&
-                  filteredProducts.map((item) => (
-                    <div
-                      onClick={() =>
-                        navigate(
-                          `/product/${item.documentId}`,
-                          {
-                            state: {
-                              item: item,
-                            },
+                {isLoading ? (
+                  <div className="p-4 text-center">Searching...</div>
+                ) : (
+                  filteredProducts.length > 0 ? (
+                    filteredProducts.map((item) => (
+                      <div
+                        onClick={() =>
+                          navigate(
+                            `/product/${item.documentId || item.id}`,
+                            {
+                              state: {
+                                item: item,
+                              },
+                            }
+                          ) & setSearchQuery("")
+                        }
+                        key={item.id}
+                        className="max-w-[600px] h-28 bg-gray-100 mb-3 flex items-center gap-3"
+                      >
+                        <img
+                          className="w-24"
+                          src={
+                            item.images && item.images[0]
+                              ? (item.images[0].formats?.thumbnail?.url
+                                  ? `http://localhost:1337${item.images[0].formats.thumbnail.url}`
+                                  : `http://localhost:1337${item.images[0].url}`)
+                              : "https://via.placeholder.com/100"
                           }
-                        ) & setSearchQuery("")
-                      }
-                      key={item._id}
-                      className="max-w-[600px] h-28 bg-gray-100 mb-3 flex items-center gap-3"
-                    >
-                      <img className="w-24" src={item.img} alt="productImg" />
-                      <div className="flex flex-col gap-1">
-                        <p className="font-semibold text-lg">
-                          {item.productName}
-                        </p>
-                        <p className="text-xs">{item.des}</p>
-                        <p className="text-sm">
-                          Price:{" "}
-                          <span className="text-primeColor font-semibold">
-                            ${item.price}
-                          </span>
-                        </p>
+                          alt={item.name}
+                        />
+                        <div className="flex flex-col gap-1">
+                          <p className="font-semibold text-lg">{item.name}</p>
+                          <p className="text-xs">{item.category}</p>
+                          <p className="text-sm">
+                            Price: <span className="text-primeColor font-semibold">₹{item.price}</span>
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="p-4 text-center">No products found.</div>
+                  )
+                )}
               </div>
             )}
           </div>
@@ -153,8 +178,21 @@ const HeaderBottom = () => {
                     Sign Up
                   </li>
                 </Link>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                  Profile
+                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer"
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      if (window && window.__REDUX_DEVTOOLS_EXTENSION__) {
+                        // For Redux DevTools, clear userInfo
+                        window.__REDUX_DEVTOOLS_EXTENSION__.send('RESET_USER', {});
+                      }
+                      if (typeof window !== 'undefined') {
+                        // Remove persisted Redux state if using redux-persist
+                        localStorage.removeItem('persist:root');
+                      }
+                      // Optionally, dispatch setUserInfo(null) if you want to clear Redux state immediately
+                      window.location.href = '/#/signin';
+                    }}>
+                  Logout
                 </li>
                 <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400  hover:border-b-white hover:text-white duration-300 cursor-pointer">
                   Others
@@ -165,7 +203,7 @@ const HeaderBottom = () => {
               <div className="relative">
                 <FaShoppingCart />
                 <span className="absolute font-titleFont top-3 -right-2 text-xs w-4 h-4 flex items-center justify-center rounded-full bg-primeColor text-white">
-                  {products.length > 0 ? products.length : 0}
+                  {cartProducts.length > 0 ? cartProducts.length : 0}
                 </span>
               </div>
             </Link>

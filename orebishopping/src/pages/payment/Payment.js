@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { resetCart } from "../../redux/orebiSlice";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Breadcrumbs from "../../components/pageProps/Breadcrumbs";
 
 const loadRazorpayScript = (src) => {
@@ -16,9 +16,10 @@ const loadRazorpayScript = (src) => {
 
 const Payment = () => {
   const products = useSelector((state) => state.orebiReducer.products);
+  const userInfo = useSelector((state) => state.orebiReducer.userInfo);
   const dispatch = useDispatch();
-  const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const navigate = useNavigate();
 
   const handleRazorpayPayment = async () => {
     const amount = products.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -35,6 +36,15 @@ const Payment = () => {
         body: JSON.stringify({ amount }),
       });
       const data = await response.json();
+      const orderDetails = {
+        id: data.id,
+        total: amount,
+        orderItems: products,
+        customerName: userInfo?.username || userInfo?.name || "",
+        customerEmail: userInfo?.email || "",
+        customerPhone: userInfo?.phone || "",
+        shippingAddress: userInfo?.address || "",
+      };
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_EnEoGL7F9kpNGQ", // Replace with your Razorpay key_id
         amount: data.amount,
@@ -43,13 +53,13 @@ const Payment = () => {
         name: "Orebi Shop",
         description: "Order Payment",
         handler: function (response) {
-          setSuccessMsg("Payment successful! Payment ID: " + response.razorpay_payment_id);
           dispatch(resetCart());
+          navigate("/payment/success", { state: { order: orderDetails } });
         },
         prefill: {
-          name: "Test User",
-          email: "user@example.com",
-          contact: "1234567890",
+          name: userInfo?.username || userInfo?.name || "",
+          email: userInfo?.email || "",
+          contact: userInfo?.phone || "",
         },
         theme: { color: "#3399cc" },
       };
@@ -64,7 +74,6 @@ const Payment = () => {
     <div className="max-w-container mx-auto px-4 py-10">
       <Breadcrumbs title="Payment gateway" />
       <h1 className="text-2xl font-bold mb-4">Payment & Checkout</h1>
-      {successMsg && <p className="text-green-600 mb-4">{successMsg}</p>}
       {errorMsg && <p className="text-red-600 mb-4">{errorMsg}</p>}
       <button
         onClick={handleRazorpayPayment}
