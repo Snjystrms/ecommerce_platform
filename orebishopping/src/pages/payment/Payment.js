@@ -52,9 +52,36 @@ const Payment = () => {
         order_id: data.id,
         name: "Orebi Shop",
         description: "Order Payment",
-        handler: function (response) {
-          dispatch(resetCart());
-          navigate("/payment/success", { state: { order: orderDetails } });
+        handler: async function (response) {
+          // response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+          const orderPayload = {
+            data: {
+              customerName: userInfo?.username || userInfo?.name || "",
+              customerEmail: userInfo?.email || "",
+              customerPhone: userInfo?.phone || "",
+              shippingAddress: userInfo?.address || "",
+              total: amount,
+              order_status: "pending",
+              orderItems: products,
+              payment_id: response.razorpay_payment_id,
+              payment_status: "paid",
+              payment_method: "card",
+              transaction_date: new Date().toISOString(),
+              payment_amount: amount
+            }
+          };
+          try {
+            const orderRes = await fetch("http://localhost:1337/api/orders", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(orderPayload)
+            });
+            const orderData = await orderRes.json();
+            dispatch(resetCart());
+            navigate("/payment/success", { state: { order: orderData.data } });
+          } catch (err) {
+            setErrorMsg("Order saving failed. Please contact support.");
+          }
         },
         prefill: {
           name: userInfo?.username || userInfo?.name || "",

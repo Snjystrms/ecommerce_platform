@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "emailtests",
+  "info": {
+    "singularName": "emailtest",
+    "pluralName": "emailtests",
+    "displayName": "emailtest"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "namecustomer": {
+      "type": "string"
+    },
+    "emailcustomer": {
+      "type": "email"
+    }
+  }
+}

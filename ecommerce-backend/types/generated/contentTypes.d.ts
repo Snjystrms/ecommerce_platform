@@ -407,6 +407,35 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEmailtestEmailtest extends Struct.CollectionTypeSchema {
+  collectionName: 'emailtests';
+  info: {
+    displayName: 'emailtest';
+    pluralName: 'emailtests';
+    singularName: 'emailtest';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    emailcustomer: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::emailtest.emailtest'
+    > &
+      Schema.Attribute.Private;
+    namecustomer: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
   collectionName: 'orders';
   info: {
@@ -415,7 +444,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     singularName: 'order';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -423,7 +452,13 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     customerEmail: Schema.Attribute.Email & Schema.Attribute.Required;
     customerName: Schema.Attribute.String & Schema.Attribute.Required;
-    customerPhone: Schema.Attribute.String;
+    customerPhone: Schema.Attribute.BigInteger &
+      Schema.Attribute.SetMinMax<
+        {
+          max: '10';
+        },
+        string
+      >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::order.order'> &
       Schema.Attribute.Private;
@@ -432,9 +467,18 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'pending'>;
     orderItems: Schema.Attribute.JSON & Schema.Attribute.Required;
+    payment_amount: Schema.Attribute.BigInteger;
+    payment_id: Schema.Attribute.String & Schema.Attribute.Required;
+    payment_method: Schema.Attribute.Enumeration<
+      ['card', 'upi', 'netbanking', 'cod', 'wallet']
+    >;
+    payment_status: Schema.Attribute.Enumeration<
+      ['pending', 'failed', 'refunded', 'paid']
+    >;
     publishedAt: Schema.Attribute.DateTime;
     shippingAddress: Schema.Attribute.Text & Schema.Attribute.Required;
     total: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    transaction_date: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -999,6 +1043,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::category.category': ApiCategoryCategory;
+      'api::emailtest.emailtest': ApiEmailtestEmailtest;
       'api::order.order': ApiOrderOrder;
       'api::product.product': ApiProductProduct;
       'plugin::content-releases.release': PluginContentReleasesRelease;
