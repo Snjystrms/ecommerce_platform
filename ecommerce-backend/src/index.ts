@@ -1,27 +1,27 @@
 export default {
   async bootstrap({ strapi }) {
     // EmailTest lifecycle
-    strapi.db.lifecycles.subscribe({
-      models: ["api::emailtest.emailtest"],
-      async afterCreate(event) {
-        const { result } = event;
-        strapi.log.info("[Bootstrap] emailtest afterCreate triggered", result.id);
+    // strapi.db.lifecycles.subscribe({
+    //   models: ["api::emailtest.emailtest"],
+    //   async afterCreate(event) {
+    //     const { result } = event;
+    //     strapi.log.info("[Bootstrap] emailtest afterCreate triggered", result.id);
 
-        try {
-          await strapi
-            .plugin('email')
-            .service('email')
-            .send({
-              to: 'chandan@graybullsadvisors.com',
-              subject: 'EmailTest: New Entry Created',
-              text: `New emailtest entry created:\n${JSON.stringify(result, null, 2)}`,
-            });
-          strapi.log.info("[Bootstrap] Test email sent");
-        } catch (err) {
-          strapi.log.error("[ERROR] Failed to send test email:", err);
-        }
-      },
-    });
+    //     try {
+    //       await strapi
+    //         .plugin('email')
+    //         .service('email')
+    //         .send({
+    //           to: 'chandan@graybullsadvisors.com',
+    //           subject: 'EmailTest: New Entry Created',
+    //           text: `New emailtest entry created:\n${JSON.stringify(result, null, 2)}`,
+    //         });
+    //       strapi.log.info("[Bootstrap] Test email sent");
+    //     } catch (err) {
+    //       strapi.log.error("[ERROR] Failed to send test email:", err);
+    //     }
+    //   },
+    // });
 
     // Order lifecycle
     strapi.db.lifecycles.subscribe({

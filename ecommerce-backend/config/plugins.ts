@@ -17,4 +17,10 @@ export default ({ env }) => ({
       },
     },
   },
+  comments: {
+    enabled: true,
+    config: {
+      // Add custom config here if needed
+    },
+  },
 });

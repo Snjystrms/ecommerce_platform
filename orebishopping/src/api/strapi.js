@@ -33,6 +33,10 @@ export const strapiApi = {
   login: (identifier, password) => api.post('/auth/local', { identifier, password }),
   register: (username, email, password) => api.post('/auth/local/register', { username, email, password }),
   loginWithGoogle: (params) => api.get('/connect/google', { params }),
+
+  // Comments plugin endpoints using documentId
+  getProductCommentsByDocumentId: (documentId) => api.get(`/comments/api::product.product:${documentId}`),
+  postProductCommentByDocumentId: (documentId, commentData) => api.post(`/comments/api::product.product:${documentId}`, commentData),
 };
 
 export default api; 

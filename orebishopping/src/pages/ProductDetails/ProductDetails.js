@@ -13,6 +13,13 @@ const ProductDetails = () => {
   const [productInfo, setProductInfo] = useState(null);
   const [prevLocation, setPrevLocation] = useState("");
 
+  // Comments state
+  const [comments, setComments] = useState([]);
+  const [commentContent, setCommentContent] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [commentSuccess, setCommentSuccess] = useState("");
+
   useEffect(() => {
     console.log('[ProductDetails] Fetching product by documentId:', documentId);
     strapiApi.getProductByDocumentId(documentId).then(res => {
@@ -21,6 +28,39 @@ const ProductDetails = () => {
     });
     setPrevLocation(window.location.pathname);
   }, [documentId]);
+
+  // Fetch comments when productInfo is loaded
+  useEffect(() => {
+    if (productInfo && productInfo.documentId) {
+      strapiApi.getProductCommentsByDocumentId(productInfo.documentId)
+        .then(res => {
+          setComments(Array.isArray(res.data) ? res.data : (res.data.data || []));
+        })
+        .catch(() => setComments([]));
+    }
+  }, [productInfo]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    setCommentLoading(true);
+    setCommentError("");
+    setCommentSuccess("");
+    try {
+      await strapiApi.postProductCommentByDocumentId(productInfo.documentId, {
+        content: commentContent,
+        // Optionally add authorName, email, etc. if your API allows
+      });
+      setCommentSuccess("Comment posted!");
+      setCommentContent("");
+      // Refresh comments
+      const res = await strapiApi.getProductCommentsByDocumentId(productInfo.documentId);
+      setComments(Array.isArray(res.data) ? res.data : (res.data.data || []));
+    } catch (err) {
+      setCommentError("Failed to post comment. Please try again.");
+    } finally {
+      setCommentLoading(false);
+    }
+  };
 
   if (!productInfo) return <div>Loading...</div>;
 
@@ -60,6 +100,39 @@ const ProductDetails = () => {
               category: productInfo.category,
             }} />
           </div>
+        </div>
+        {/* Comments Section */}
+        <div className="max-w-xl mx-auto mt-8 bg-white p-6 rounded shadow">
+          <h2 className="text-xl font-bold mb-4">Comments & Reviews</h2>
+          {comments.length === 0 && <div className="text-gray-500 mb-4">No comments yet. Be the first to comment!</div>}
+          <ul className="mb-6">
+            {comments.map((comment) => (
+              <li key={comment.id} className="mb-4 border-b pb-2">
+                <div className="font-semibold">{comment.author?.name || 'Anonymous'}</div>
+                <div className="text-gray-700">{comment.content}</div>
+                <div className="text-xs text-gray-400">{new Date(comment.createdAt).toLocaleString()}</div>
+              </li>
+            ))}
+          </ul>
+          <form onSubmit={handleCommentSubmit} className="flex flex-col gap-2">
+            <textarea
+              className="border rounded p-2"
+              rows={3}
+              placeholder="Leave a comment or review..."
+              value={commentContent}
+              onChange={e => setCommentContent(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              disabled={commentLoading || !commentContent.trim()}
+            >
+              {commentLoading ? "Posting..." : "Post Comment"}
+            </button>
+            {commentError && <div className="text-red-500 text-sm">{commentError}</div>}
+            {commentSuccess && <div className="text-green-600 text-sm">{commentSuccess}</div>}
+          </form>
         </div>
       </div>
     </div>
