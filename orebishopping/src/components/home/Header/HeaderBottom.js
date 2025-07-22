@@ -14,21 +14,11 @@ const meiliClient = new MeiliSearch({
 const productIndex = meiliClient.index('product');
 
 const HeaderBottom = () => {
-  // Use Redux store for cart products only
-  const cartProducts = useSelector((state) => state.orebiReducer.products);
   const [show, setShow] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const navigate = useNavigate();
   const ref = useRef();
-  useEffect(() => {
-    document.body.addEventListener("click", (e) => {
-      if (ref.current && ref.current.contains(e.target)) {
-        setShow(true);
-      } else {
-        setShow(false);
-      }
-    });
-  }, [show, ref]);
+  const { cartItems, userInfo } = useSelector((state) => state.orebi);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -57,6 +47,19 @@ const HeaderBottom = () => {
     setSearchQuery(e.target.value);
   };
 
+  useEffect(() => {
+    document.body.addEventListener("click", (e) => {
+      if (ref.current?.contains(e.target)) return;
+      setShow(false);
+    });
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
+
   return (
     <div className="w-full bg-[#F5F5F3] relative">
       <div className="max-w-container mx-auto">
@@ -68,7 +71,6 @@ const HeaderBottom = () => {
           >
             <HiOutlineMenuAlt4 className="w-5 h-5" />
             <p className="text-[14px] font-normal">Shop by Category</p>
-
             {show && (
               <motion.ul
                 initial={{ y: 30, opacity: 0 }}
@@ -88,10 +90,10 @@ const HeaderBottom = () => {
                 <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
                   Clothes
                 </li>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400  hover:border-b-white hover:text-white duration-300 cursor-pointer">
+                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
                   Bags
                 </li>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400  hover:border-b-white hover:text-white duration-300 cursor-pointer">
+                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
                   Home appliances
                 </li>
               </motion.ul>
@@ -166,44 +168,43 @@ const HeaderBottom = () => {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="absolute top-6 left-0 z-50 bg-primeColor w-44 text-[#767676] h-auto p-4 pb-6"
+                className="absolute top-6 right-0 z-50 bg-primeColor w-44 text-[#767676] h-auto p-4 pb-6"
               >
-                <Link to="/signin">
-                  <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                    Login
-                  </li>
-                </Link>
-                <Link onClick={() => setShowUser(false)} to="/signup">
-                  <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                    Sign Up
-                  </li>
-                </Link>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer"
-                    onClick={() => {
-                      localStorage.removeItem('token');
-                      if (window && window.__REDUX_DEVTOOLS_EXTENSION__) {
-                        // For Redux DevTools, clear userInfo
-                        window.__REDUX_DEVTOOLS_EXTENSION__.send('RESET_USER', {});
-                      }
-                      if (typeof window !== 'undefined') {
-                        // Remove persisted Redux state if using redux-persist
-                        localStorage.removeItem('persist:root');
-                      }
-                      // Optionally, dispatch setUserInfo(null) if you want to clear Redux state immediately
-                      window.location.href = '/#/signin';
-                    }}>
-                  Logout
-                </li>
-                <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400  hover:border-b-white hover:text-white duration-300 cursor-pointer">
-                  Others
-                </li>
+                {userInfo ? (
+                  <>
+                    <Link to="/profile">
+                      <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
+                        Profile
+                      </li>
+                    </Link>
+                    <li
+                      onClick={handleLogout}
+                      className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer"
+                    >
+                      Logout
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/signin">
+                      <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
+                        Login
+                      </li>
+                    </Link>
+                    <Link onClick={() => setShowUser(false)} to="/signup">
+                      <li className="text-gray-400 px-4 py-1 border-b-[1px] border-b-gray-400 hover:border-b-white hover:text-white duration-300 cursor-pointer">
+                        Sign Up
+                      </li>
+                    </Link>
+                  </>
+                )}
               </motion.ul>
             )}
             <Link to="/cart">
               <div className="relative">
                 <FaShoppingCart />
                 <span className="absolute font-titleFont top-3 -right-2 text-xs w-4 h-4 flex items-center justify-center rounded-full bg-primeColor text-white">
-                  {cartProducts.length > 0 ? cartProducts.length : 0}
+                  {cartItems.length > 0 ? cartItems.length : 0}
                 </span>
               </div>
             </Link>

@@ -1,5 +1,5 @@
 import {
-  createHashRouter,
+  createBrowserRouter,
   RouterProvider,
   Outlet,
   createRoutesFromElements,
@@ -22,11 +22,37 @@ import Offer from "./pages/Offer/Offer";
 import Payment from "./pages/payment/Payment";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Shop from "./pages/Shop/Shop";
-import GoogleCallback from "./pages/Account/GoogleCallback";
-import Success from "./pages/payment/Success";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Profile from "./pages/Account/Profile";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { strapiApi } from "./api/strapi";
+import { setCartFromDB } from "./redux/orebiSlice";
+import Success from "./pages/payment/Success";
+import GoogleCallback from "./pages/Account/GoogleCallback";
+
 
 const Layout = () => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.orebi);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (userInfo && userInfo.user && userInfo.user.id) {
+        try {
+          const res = await strapiApi.getCartByUserId(userInfo.user.id);
+          if (res.data.data && res.data.data.length > 0) {
+            dispatch(setCartFromDB(res.data.data[0]));
+          }
+        } catch (error) {
+          console.error("Failed to fetch cart:", error);
+        }
+      }
+    };
+    fetchCart();
+  }, [userInfo, dispatch]);
+
   return (
     <div>
       <Header />
@@ -39,7 +65,7 @@ const Layout = () => {
     </div>
   );
 };
-const router = createHashRouter(
+const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route path="/" element={<Layout />}>

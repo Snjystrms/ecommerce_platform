@@ -72,6 +72,12 @@
     "phone": {
       "type": "biginteger",
       "max": "10"
+    },
+    "cart": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::cart.cart",
+      "mappedBy": "user"
     }
   }
 }

@@ -1,33 +1,36 @@
 import { configureStore } from "@reduxjs/toolkit";
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from "redux-persist";
-import storage from "redux-persist/lib/storage";
 import orebiReducer from "./orebiSlice";
 
-const persistConfig = {
-  key: "root",
-  version: 1,
-  storage,
+// Get initial user info from localStorage if available
+const getUserFromLocalStorage = () => {
+  try {
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (user && token) {
+      return {
+        user: JSON.parse(user),
+        jwt: token
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error parsing user from localStorage:', error);
+    return null;
+  }
 };
 
-const persistedReducer = persistReducer(persistConfig, orebiReducer);
-
 export const store = configureStore({
-  reducer: { orebiReducer: persistedReducer },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      },
-    }),
+  reducer: {
+    orebi: orebiReducer,
+  },
+  preloadedState: {
+    orebi: {
+      userInfo: getUserFromLocalStorage(),
+      products: [],
+      cart: null,
+      cartItems: [],
+    }
+  }
 });
 
-export let persistor = persistStore(store);
+export default store;

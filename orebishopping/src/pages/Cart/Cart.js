@@ -3,23 +3,41 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Breadcrumbs from "../../components/pageProps/Breadcrumbs";
-import { resetCart } from "../../redux/orebiSlice";
+import { resetCart, setCartFromDB } from "../../redux/orebiSlice";
 import { emptyCart } from "../../assets/images/index";
 import ItemCard from "./ItemCard";
+import { strapiApi } from "../../api/strapi";
 
 const Cart = () => {
   const dispatch = useDispatch();
-  const products = useSelector((state) => state.orebiReducer.products);
+  const { cartItems, userInfo } = useSelector((state) => state.orebi);
   const [totalAmt, setTotalAmt] = useState("");
   const [shippingCharge, setShippingCharge] = useState("");
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (userInfo && userInfo.user) {
+        try {
+          const res = await strapiApi.getCartByUserId(userInfo.user.id);
+          if (res.data.data && res.data.data.length > 0) {
+            dispatch(setCartFromDB(res.data.data[0]));
+          }
+        } catch (error) {
+          console.error("Failed to fetch cart:", error);
+        }
+      }
+    };
+    fetchCart();
+  }, [userInfo, dispatch]);
+
   useEffect(() => {
     let price = 0;
-    products.map((item) => {
+    cartItems.forEach((item) => {
       price += item.price * item.quantity;
-      return price;
     });
     setTotalAmt(price);
-  }, [products]);
+  }, [cartItems]);
+
   useEffect(() => {
     if (totalAmt <= 200) {
       setShippingCharge(30);
@@ -29,10 +47,11 @@ const Cart = () => {
       setShippingCharge(20);
     }
   }, [totalAmt]);
+
   return (
     <div className="max-w-container mx-auto px-4">
       <Breadcrumbs title="Cart" />
-      {products.length > 0 ? (
+      {cartItems.length > 0 ? (
         <div className="pb-20">
           <div className="w-full h-20 bg-[#F5F7F7] text-primeColor hidden lgl:grid grid-cols-5 place-content-center px-6 text-lg font-titleFont font-semibold">
             <h2 className="col-span-2">Product</h2>
@@ -41,8 +60,8 @@ const Cart = () => {
             <h2>Sub Total</h2>
           </div>
           <div className="mt-5">
-            {products.map((item) => (
-              <div key={item._id}>
+            {cartItems.map((item) => (
+              <div key={item.productId}>
                 <ItemCard item={item} />
               </div>
             ))}
@@ -75,24 +94,24 @@ const Cart = () => {
                 <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
                   Subtotal
                   <span className="font-semibold tracking-wide font-titleFont">
-                    ₹{totalAmt}
+                    ${totalAmt}
                   </span>
                 </p>
                 <p className="flex items-center justify-between border-[1px] border-gray-400 border-b-0 py-1.5 text-lg px-4 font-medium">
                   Shipping Charge
                   <span className="font-semibold tracking-wide font-titleFont">
-                    ₹{shippingCharge}
+                    ${shippingCharge}
                   </span>
                 </p>
                 <p className="flex items-center justify-between border-[1px] border-gray-400 py-1.5 text-lg px-4 font-medium">
                   Total
                   <span className="font-bold tracking-wide text-lg font-titleFont">
-                    ₹{totalAmt + shippingCharge}
+                    ${totalAmt + shippingCharge}
                   </span>
                 </p>
               </div>
               <div className="flex justify-end">
-                <Link to="/paymentgateway">
+                <Link to="/payment">
                   <button className="w-52 h-10 bg-primeColor text-white hover:bg-black duration-300">
                     Proceed to Checkout
                   </button>

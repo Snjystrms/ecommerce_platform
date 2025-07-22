@@ -6,29 +6,64 @@ import { MdOutlineLabelImportant } from "react-icons/md";
 import Image from "../../designLayouts/Image";
 import Badge from "./Badge";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../../redux/orebiSlice";
+import { strapiApi } from "../../../api/strapi";
 
 const Product = (props) => {
   const dispatch = useDispatch();
-  const _id = props.productName;
-  const idString = (_id) => {
-    return String(_id).toLowerCase().split(" ").join("");
-  };
-  const rootId = idString(_id);
-
   const navigate = useNavigate();
-  const productItem = props;
+  const { userInfo, cart, cartItems } = useSelector((state) => state.orebi);
+
   const handleProductDetails = () => {
     navigate(`/product/${props.documentId}`, {
       state: {
-        item: productItem,
+        item: props,
       },
     });
   };
+
+  const handleAddToCart = async () => {
+    const productToAdd = {
+      productId: props._id,
+      name: props.productName,
+      quantity: 1,
+      image: props.img,
+      price: props.price,
+    };
+
+    let updatedCartItems = [...cartItems];
+    const existingItem = updatedCartItems.find(item => item.productId === props._id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      updatedCartItems.push(productToAdd);
+    }
+
+    if (userInfo && userInfo.user) {
+      const payload = { data: { cartItems: updatedCartItems } };
+      try {
+        if (cart) {
+          await strapiApi.updateCart(cart.id, payload);
+        } else {
+          const createPayload = {
+            data: { ...payload.data, user: userInfo.user.id },
+          };
+          await strapiApi.createCart(createPayload);
+        }
+        dispatch(addToCart(productToAdd));
+      } catch (error) {
+        console.error("Failed to sync cart with DB:", error);
+      }
+    } else {
+      dispatch(addToCart(productToAdd));
+    }
+  };
+
   return (
     <div className="w-full relative group">
-      <div className="max-w-80 max-h-80 relative overflow-y-hidden ">
+      <div className="max-w-80 max-h-80 relative overflow-y-hidden">
         <div>
           <Image className="w-full h-full" imgSrc={props.img} />
         </div>
@@ -44,19 +79,7 @@ const Product = (props) => {
               </span>
             </li>
             <li
-              onClick={() =>
-                dispatch(
-                  addToCart({
-                    _id: props._id,
-                    name: props.productName,
-                    quantity: 1,
-                    image: props.img,
-                    badge: props.badge,
-                    price: props.price,
-                    colors: props.color,
-                  })
-                )
-              }
+              onClick={handleAddToCart}
               className="text-[#767676] hover:text-primeColor text-sm font-normal border-b-[1px] border-b-gray-200 hover:border-b-primeColor flex items-center justify-end gap-2 hover:cursor-pointer pb-1 duration-300 w-full"
             >
               Add to Cart
@@ -87,7 +110,7 @@ const Product = (props) => {
           <h2 className="text-lg text-primeColor font-bold">
             {props.productName}
           </h2>
-          <p className="text-[#767676] text-[14px]">₹{props.price}</p>
+          <p className="text-[#767676] text-[14px]">${props.price}</p>
         </div>
         <div>
           <p className="text-[#767676] text-[14px]">{props.color}</p>

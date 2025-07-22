@@ -37,6 +37,11 @@ export const strapiApi = {
   // Comments plugin endpoints using documentId
   getProductCommentsByDocumentId: (documentId) => api.get(`/comments/api::product.product:${documentId}`),
   postProductCommentByDocumentId: (documentId, commentData) => api.post(`/comments/api::product.product:${documentId}`, commentData),
+
+  // Cart endpoints
+  getCartByUserId: (userId) => api.get(`/carts?filters[user][id][$eq]=${userId}&populate=*`),
+  createCart: (cartData) => api.post('/carts', cartData),
+  updateCart: (cartId, cartData) => api.put(`/carts/${cartId}`, cartData),
 };
 
 export default api; 

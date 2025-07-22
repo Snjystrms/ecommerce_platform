@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { logoLight, pngegg } from "../../assets/images";
 import { strapiApi } from "../../api/strapi";
 import { useDispatch } from "react-redux";
-import { setUserInfo } from "../../redux/orebiSlice";
+import { addUser } from "../../redux/orebiSlice";
 
 const SignIn = () => {
   // ============= Initial State Start here =============
@@ -49,19 +49,15 @@ const SignIn = () => {
         // Save JWT token to localStorage
         if (response.data && response.data.jwt) {
           localStorage.setItem('token', response.data.jwt);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          dispatch(addUser(response.data));
+          setSuccessMsg(`Welcome back, ${response.data.user.username}! Redirecting...`);
+          setTimeout(() => {
+            navigate("/");
+          }, 1000);
         }
-        // Save user info in Redux
-        if (response.data && response.data.user) {
-          dispatch(setUserInfo(response.data.user));
-        }
-        setSuccessMsg("Login successful! Welcome back.");
-        setEmail("");
-        setPassword("");
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
       } catch (error) {
-        setApiError(error.response?.data?.error?.message || "Login failed. Please check your credentials.");
+        setErrEmail("Failed to login. Please check your credentials.");
       }
     }
   };
